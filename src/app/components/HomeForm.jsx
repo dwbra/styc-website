@@ -21,8 +21,8 @@ import { TextField, Button } from '@mui/material';
 //   googleClientSecret: Yup.string().required('This is a required field.'),
 // });
 
-const GoogleAuthUrl = 'http://localhost:3000/api/google-auth-url';
-const GoogleAuthTokenUrl = 'http://localhost:3000/api/google-auth-tokens';
+const googleFetchUrl = 'http://localhost:3000/api/google-auth-url';
+const googleRedirectURI = 'http://localhost:5000/api/google-auth-url';
 
 const HomeForm = () => {
   const { setGoogleAccessToken, setSpotifyAccessToken } = useContext(StycContext);
@@ -35,25 +35,24 @@ const HomeForm = () => {
     googleClientId,
     googleClientSecret,
   }) => {
-    const googleAuthURL = await fetch(GoogleAuthUrl, {
+    const googleFetchTokens = await fetch(googleFetchUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ googleClientId, googleClientSecret, GoogleAuthTokenUrl }),
+      body: JSON.stringify({ googleClientId, googleClientSecret, googleRedirectURI }),
     });
 
-    const googleUrl = await googleAuthURL.json();
-    // setGoogleAccessToken(googleTokens);
-    console.log(googleUrl);
+    const googleAuthTokens = await googleFetchTokens.json();
+    setGoogleAccessToken(googleAuthTokens.body);
 
-    // const spotifyToken = await SpotifyAuth(spotifyClientId, spotifyClientSecret);
-    // setSpotifyAccessToken(spotifyToken);
-    // console.log(spotifyToken);
+    const spotifyToken = await SpotifyAuth(spotifyClientId, spotifyClientSecret);
+    setSpotifyAccessToken(spotifyToken);
 
     // await SpotifyHandler(spotifyPlaylistId, SpotifyRecursive);
     // await YoutubeHandler(youtubePlaylistId);
   };
+
   return (
     <div>
       <h3>Convert your Spotify Playlist Below</h3>
