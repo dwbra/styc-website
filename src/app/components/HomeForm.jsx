@@ -1,31 +1,42 @@
 'use client';
-import React, { useContext } from 'react';
+import React from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-import SpotifyAuth from '../api/spotifyAuth';
-import SpotifyHandler from './SpotifyHandler';
-import YoutubeHandler from './YoutubeHandler';
-import SpotifyRecursive from '../helpers/SpotifyRecursive';
-
-import StycContext from './_Context';
+import spotifyAuth from '../helpers/spotifyAuth';
+import getGoogleTokens from '../helpers/getGoogleTokens';
+import fetchSpotifyTracks from '../helpers/spotifyFetchTracks';
+import spotifyDataModifier from '../helpers/spotifyDataModifier';
+import getYoutubeVideoIds from '../helpers/getYoutubeVideoIds';
+import youtubeSearchModifier from '../helpers/youtubeSearchModifier';
+import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
 
 import styles from '../page.module.scss';
 import { TextField, Button } from '@mui/material';
 
-// const ConverterFormValidation = Yup.object().shape({
-//   spotifyPlaylistId: Yup.string().required('This is a required field.'),
-//   spotifyClientId: Yup.string().required('This is a required field.'),
-//   spotifyClientSecret: Yup.string().required('This is a required field.'),
-//   youtubePlaylistId: Yup.string().required('This is a required field.'),
-//   googleClientId: Yup.string().required('This is a required field.'),
-//   googleClientSecret: Yup.string().required('This is a required field.'),
-// });
-
-const googleFetchUrl = 'http://localhost:3000/api/google-auth-url';
-const googleRedirectURI = 'http://localhost:5000/api/google-auth-url';
+const ConverterFormValidation = Yup.object().shape({
+  spotifyPlaylistId: Yup.string().required('This is a required field.'),
+  spotifyClientId: Yup.string().required('This is a required field.'),
+  spotifyClientSecret: Yup.string().required('This is a required field.'),
+  youtubePlaylistId: Yup.string().required('This is a required field.'),
+  googleClientId: Yup.string().required('This is a required field.'),
+  googleClientSecret: Yup.string().required('This is a required field.'),
+});
 
 const HomeForm = () => {
-  const { setGoogleAccessToken, setSpotifyAccessToken } = useContext(StycContext);
+  let spotifyStore = [];
+  let spotifyNext = null;
+
+  const spotifyRecursive = async callback => {
+    const getPlaylist = await callback;
+
+    if (!!spotifyNext) {
+      spotifyStore = [...spotifyStore, ...getPlaylist?.items];
+      spotifyNext = getPlaylist?.tracks?.next;
+      spotifyRecursive();
+    }
+
+    return;
+  };
 
   const CallStack = async ({
     spotifyPlaylistId,
@@ -35,22 +46,46 @@ const HomeForm = () => {
     googleClientId,
     googleClientSecret,
   }) => {
-    const googleFetchTokens = await fetch(googleFetchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ googleClientId, googleClientSecret, googleRedirectURI }),
+    const googleFetchTokens = await getGoogleTokens(googleClientId, googleClientSecret);
+
+    const spotifyToken = await spotifyAuth(spotifyClientId, spotifyClientSecret);
+
+    const getSpotifyPlaylistTracks = await fetchSpotifyTracks(spotifyToken, spotifyPlaylistId);
+    spotifyNext = getSpotifyPlaylistTracks?.tracks?.next;
+    spotifyStore = [...getSpotifyPlaylistTracks?.tracks?.items];
+
+    if (!!spotifyNext) {
+      await spotifyRecursive(fetchOffsetTracks(spotifyToken, spotifyNext));
+    }
+
+    const modifiedSpotifyDataJS = spotifyDataModifier(spotifyStore);
+
+    if (!modifiedSpotifyDataJS.length < 10) {
+      modifiedSpotifyDataJS.length = 10;
+    }
+
+    console.log({ spotifyModifiedData: modifiedSpotifyDataJS });
+
+    const youtubeVideoIds = await getYoutubeVideoIds(googleFetchTokens.access_token, modifiedSpotifyDataJS);
+
+    console.log({ videoIds: youtubeVideoIds });
+
+    if (youtubeVideoIds[0].error) {
+      console.log(youtubeVideoIds[0].error);
+      alert('Failed');
+      return;
+    }
+
+    const sanitizedIds = youtubeSearchModifier(youtubeVideoIds);
+
+    const results = sanitizedIds.map(async track => {
+      return await postYoutubeTrack(googleFetchTokens.access_token, track, youtubePlaylistId);
     });
 
-    const googleAuthTokens = await googleFetchTokens.json();
-    setGoogleAccessToken(googleAuthTokens.body);
-
-    const spotifyToken = await SpotifyAuth(spotifyClientId, spotifyClientSecret);
-    setSpotifyAccessToken(spotifyToken);
-
-    // await SpotifyHandler(spotifyPlaylistId, SpotifyRecursive);
-    // await YoutubeHandler(youtubePlaylistId);
+    console.log({
+      postRequestData: await Promise.all(results),
+    });
+    await Promise.all(results).then(() => alert('Success! Tracks were added to youtube!'));
   };
 
   return (
@@ -69,7 +104,7 @@ const HomeForm = () => {
           googleClientId: '',
           googleClientSecret: '',
         }}
-        // validationSchema={ConverterFormValidation}
+        validationSchema={ConverterFormValidation}
         onSubmit={async (
           {
             spotifyPlaylistId,

@@ -7,14 +7,19 @@
 const fetchPlaylistTracks = async (bearerToken, playlistId) => {
   const endpoint = `https://api.spotify.com/v1/playlists/${playlistId}/`;
   try {
-    const response = await fetch(endpoint, {
+    const request = await fetch(endpoint, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${bearerToken}`,
       },
     });
-    const body = await response.json();
-    return body;
+
+    if (request.ok) {
+      const response = await request.json();
+      return response;
+    } else {
+      throw request;
+    }
   } catch (err) {
     console.log(err);
   }

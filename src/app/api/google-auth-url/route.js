@@ -57,8 +57,8 @@ function getAuthenticatedClient(googleClientId, googleClientSecret, googleUri) {
             // acquire the code from the querystring, and close the web server.
             const qs = new url.URL(req.url, 'http://localhost:3000').searchParams;
             const code = qs.get('code');
-            console.log(`Code is ${code}`);
-            res.end('Authentication successful! Please return to the console.');
+            // console.log(`Code is ${code}`);
+            res.end('Authentication successful! You may close this browser tab now.');
             server.destroy();
 
             // Now that we have the code, use that to acquire tokens.
