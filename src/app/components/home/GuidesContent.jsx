@@ -1,5 +1,5 @@
 import { Stack, Link } from '@mui/material';
-import styles from '../page.module.scss';
+import styles from '../../page.module.scss';
 
 export default function GuidesContent() {
   return (

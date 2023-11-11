@@ -2,16 +2,16 @@
 import React from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
-import spotifyAuth from '../helpers/spotifyAuth';
-import getGoogleTokens from '../helpers/getGoogleTokens';
-import fetchSpotifyTracks from '../helpers/spotifyFetchTracks';
-import spotifyDataModifier from '../helpers/spotifyDataModifier';
-import getYoutubeVideoIds from '../helpers/getYoutubeVideoIds';
-import youtubeSearchModifier from '../helpers/youtubeSearchModifier';
+import spotifyAuth from '../../helpers/spotifyAuth';
+import getGoogleTokens from '../../helpers/getGoogleTokens';
+import fetchSpotifyTracks from '../../helpers/spotifyFetchTracks';
+import spotifyDataModifier from '../../helpers/spotifyDataModifier';
+import getYoutubeVideoIds from '../../helpers/getYoutubeVideoIds';
+import youtubeSearchModifier from '../../helpers/youtubeSearchModifier';
 import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
 
-import styles from '../page.module.scss';
-import { TextField, Button } from '@mui/material';
+import styles from '../../page.module.scss';
+import { TextField, Button, CircularProgress } from '@mui/material';
 
 const ConverterFormValidation = Yup.object().shape({
   spotifyPlaylistId: Yup.string().required('This is a required field.'),
@@ -22,7 +22,7 @@ const ConverterFormValidation = Yup.object().shape({
   googleClientSecret: Yup.string().required('This is a required field.'),
 });
 
-const HomeForm = () => {
+const ConverterForm = () => {
   let spotifyStore = [];
   let spotifyNext = null;
 
@@ -60,8 +60,8 @@ const HomeForm = () => {
 
     const modifiedSpotifyDataJS = spotifyDataModifier(spotifyStore);
 
-    if (!modifiedSpotifyDataJS.length < 10) {
-      modifiedSpotifyDataJS.length = 10;
+    if (!modifiedSpotifyDataJS.length < 1) {
+      modifiedSpotifyDataJS.length = 1;
     }
 
     console.log({ spotifyModifiedData: modifiedSpotifyDataJS });
@@ -78,14 +78,27 @@ const HomeForm = () => {
 
     const sanitizedIds = youtubeSearchModifier(youtubeVideoIds);
 
-    const results = sanitizedIds.map(async track => {
-      return await postYoutubeTrack(googleFetchTokens.access_token, track, youtubePlaylistId);
-    });
+    console.log({ sanitizedIds });
 
-    console.log({
-      postRequestData: await Promise.all(results),
-    });
-    await Promise.all(results).then(() => alert('Success! Tracks were added to youtube!'));
+    /**
+     * Create a generator function with a list of yielded async functions. Each yielded function contains a different track to POST into the Youtube playlist.
+     */
+    async function* postTracks() {
+      for (const track of sanitizedIds) {
+        yield await postYoutubeTrack(googleFetchTokens.access_token, track, youtubePlaylistId);
+      }
+    }
+
+    // Create the generator object
+    const postRequestResultData = postTracks();
+
+    // Loop over the array of sanitizedIds and call .next() on the generator function to POST the next track.
+    for (let i = 0; i < sanitizedIds.length; i++) {
+      console.log(`Loop ${i}`);
+      console.log(postRequestResultData.next());
+      // Wait 4s after each request to ensure we don't hit API errors.
+      await new Promise(r => setTimeout(r, 4000));
+    }
   };
 
   return (
@@ -125,7 +138,7 @@ const HomeForm = () => {
             googleClientId,
             googleClientSecret,
           });
-          resetForm();
+          // resetForm();
         }}
       >
         {({ isSubmitting, isValid }) => (
@@ -246,4 +259,4 @@ const HomeForm = () => {
   );
 };
 
-export default HomeForm;
+export default ConverterForm;

@@ -25,6 +25,7 @@ export default function Adsense({ styles, slot, format }) {
       data-ad-slot={slot}
       data-ad-format={format ? format : 'auto'}
       data-full-width-responsive="true"
+      data-adtest="on"
     ></ins>
   );
 }

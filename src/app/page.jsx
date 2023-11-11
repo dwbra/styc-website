@@ -1,8 +1,8 @@
 import Adsense from '@/app/components/_AdSense';
-import IntroContent from '@/app/components/HomeIntroContent';
-import GuidesContent from '@/app/components/HomeGuidesContent';
+import IntroContent from '@/app/components/home/IntroContent';
+import GuidesContent from '@/app/components/home/GuidesContent';
 import BuyMeACoffeeButton from '@/app/components/_BuyMeCoffeeButton';
-import HomeForm from '@/app/components/HomeForm';
+import ConverterForm from '@/app/components/home/ConverterForm';
 import BuyMeACoffeeWidget from '@/app/components/_BuyMeCoffeeWidget';
 import styles from './page.module.scss';
 
@@ -14,7 +14,7 @@ export default function Home() {
         <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
         <GuidesContent />
         <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
-        <HomeForm />
+        <ConverterForm />
         <BuyMeACoffeeButton />
         <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
         <BuyMeACoffeeWidget />
