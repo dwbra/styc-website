@@ -12,6 +12,7 @@ import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
 
 import styles from '../../page.module.scss';
 import { TextField, Button, CircularProgress, Modal, Box, Fade, Backdrop } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 
 const modalStyle = {
   position: 'absolute',
@@ -38,6 +39,9 @@ const ConverterFormValidation = Yup.object().shape({
 const ConverterForm = () => {
   let spotifyStore = [];
   let spotifyNext = null;
+  // let errorMessage = null;
+
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalOpen = () => setIsModalOpen(true);
@@ -65,6 +69,15 @@ const ConverterForm = () => {
   }) => {
     const googleFetchTokens = await getGoogleTokens(googleClientId, googleClientSecret);
 
+    if (googleFetchTokens.ok === false) {
+      setErrorMessage({
+        status: googleFetchTokens.status,
+        statusText: googleFetchTokens.statusText,
+        message: 'You have entered an incorrect Google ClientId or Client Secret. Please try again.',
+      });
+      return;
+    }
+
     const spotifyToken = await spotifyAuth(spotifyClientId, spotifyClientSecret);
 
     const getSpotifyPlaylistTracks = await fetchSpotifyTracks(spotifyToken, spotifyPlaylistId);
@@ -81,11 +94,7 @@ const ConverterForm = () => {
       modifiedSpotifyDataJS.length = 1;
     }
 
-    console.log({ spotifyModifiedData: modifiedSpotifyDataJS });
-
     const youtubeVideoIds = await getYoutubeVideoIds(googleFetchTokens.access_token, modifiedSpotifyDataJS);
-
-    console.log({ videoIds: youtubeVideoIds });
 
     if (youtubeVideoIds[0].error) {
       console.log(youtubeVideoIds[0].error);
@@ -94,8 +103,6 @@ const ConverterForm = () => {
     }
 
     const sanitizedIds = youtubeSearchModifier(youtubeVideoIds);
-
-    console.log({ sanitizedIds });
 
     /**
      * Create a generator function with a list of yielded async functions. Each yielded function contains a different track to POST into the Youtube playlist.
@@ -146,6 +153,8 @@ const ConverterForm = () => {
           { setSubmitting, resetForm }
         ) => {
           handleModalOpen();
+          setSubmitting(false);
+
           await CallStack({
             spotifyPlaylistId,
             spotifyClientId,
@@ -154,9 +163,11 @@ const ConverterForm = () => {
             googleClientId,
             googleClientSecret,
           });
-          // resetForm();
-          setSubmitting(false);
-          handleModalClose();
+
+          if (errorMessage === null) {
+            resetForm();
+            handleModalClose();
+          }
         }}
       >
         {({ isSubmitting, isValid }) => (
@@ -287,8 +298,24 @@ const ConverterForm = () => {
       >
         <Fade in={isModalOpen}>
           <Box sx={modalStyle}>
-            <h4 style={{ marginBottom: '30px' }}>Please wait while your playlist is being built.</h4>
-            <CircularProgress />
+            <div style={{ position: 'relative' }}>
+              {errorMessage ? (
+                <>
+                  <p>Error Status: {errorMessage.status}</p>
+                  <p>{errorMessage.message}</p>
+                </>
+              ) : (
+                <>
+                  <h4 style={{ marginBottom: '30px' }}>Please wait while your playlist is being built.</h4>
+                  <CircularProgress />
+                </>
+              )}
+              {errorMessage && (
+                <button onClick={handleModalClose} type="button" className={styles.modalCloseButton}>
+                  <ClearIcon />
+                </button>
+              )}
+            </div>
           </Box>
         </Fade>
       </Modal>

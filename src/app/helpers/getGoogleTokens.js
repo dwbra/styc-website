@@ -23,6 +23,7 @@ export default async function getGoogleTokens(googleClientId, googleClientSecret
       throw request;
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
+    return err;
   }
 }

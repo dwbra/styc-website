@@ -95,6 +95,17 @@
   box-shadow: 24;
 }
 
+.modalCloseButton {
+  position: absolute;
+  left: 90%;
+  bottom: 100%;
+
+  &:hover,
+  &:focus {
+    cursor: pointer;
+  }
+}
+
 // .description {
 //   display: inherit;
 //   justify-content: inherit;
