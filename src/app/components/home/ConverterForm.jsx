@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import spotifyAuth from '../../helpers/spotifyAuth';
@@ -11,7 +11,20 @@ import youtubeSearchModifier from '../../helpers/youtubeSearchModifier';
 import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
 
 import styles from '../../page.module.scss';
-import { TextField, Button, CircularProgress } from '@mui/material';
+import { TextField, Button, CircularProgress, Modal, Box, Fade, Backdrop } from '@mui/material';
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '1px solid grey',
+  boxShadow: 24,
+  p: 4,
+  textAlign: 'center',
+};
 
 const ConverterFormValidation = Yup.object().shape({
   spotifyPlaylistId: Yup.string().required('This is a required field.'),
@@ -25,6 +38,10 @@ const ConverterFormValidation = Yup.object().shape({
 const ConverterForm = () => {
   let spotifyStore = [];
   let spotifyNext = null;
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleModalOpen = () => setIsModalOpen(true);
+  const handleModalClose = () => setIsModalOpen(false);
 
   const spotifyRecursive = async callback => {
     const getPlaylist = await callback;
@@ -94,8 +111,7 @@ const ConverterForm = () => {
 
     // Loop over the array of sanitizedIds and call .next() on the generator function to POST the next track.
     for (let i = 0; i < sanitizedIds.length; i++) {
-      console.log(`Loop ${i}`);
-      console.log(postRequestResultData.next());
+      postRequestResultData.next();
       // Wait 4s after each request to ensure we don't hit API errors.
       await new Promise(r => setTimeout(r, 4000));
     }
@@ -129,7 +145,7 @@ const ConverterForm = () => {
           },
           { setSubmitting, resetForm }
         ) => {
-          //   setSubmitting(false);
+          handleModalOpen();
           await CallStack({
             spotifyPlaylistId,
             spotifyClientId,
@@ -139,6 +155,8 @@ const ConverterForm = () => {
             googleClientSecret,
           });
           // resetForm();
+          setSubmitting(false);
+          handleModalClose();
         }}
       >
         {({ isSubmitting, isValid }) => (
@@ -255,6 +273,25 @@ const ConverterForm = () => {
           </Form>
         )}
       </Formik>
+      <Modal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        aria-describedby="conversion form is submitting"
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        <Fade in={isModalOpen}>
+          <Box sx={modalStyle}>
+            <h4 style={{ marginBottom: '30px' }}>Please wait while your playlist is being built.</h4>
+            <CircularProgress />
+          </Box>
+        </Fade>
+      </Modal>
     </div>
   );
 };
