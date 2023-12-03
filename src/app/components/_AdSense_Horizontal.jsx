@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 
-export default function Adsense({ styles, slot, format }) {
+export default function AdsenseHorizontal() {
   const loadAds = () => {
     try {
       if (typeof window !== 'undefined') {

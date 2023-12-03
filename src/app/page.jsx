@@ -1,4 +1,4 @@
-import Adsense from '@/app/components/_AdSense_Square';
+import AdsenseSquare from '@/app/components/_AdSense_Square';
 import IntroContent from '@/app/components/home/IntroContent';
 import GuidesContent from '@/app/components/home/GuidesContent';
 import BuyMeACoffeeButton from '@/app/components/_BuyMeCoffeeButton';
@@ -11,12 +11,12 @@ export default function Home() {
     <>
       <main className={styles.main}>
         <IntroContent />
-        <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
+        <AdsenseSquare />
         <GuidesContent />
-        <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
+        <AdsenseSquare />
         <ConverterForm />
         <BuyMeACoffeeButton />
-        <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
+        <AdsenseSquare />
         <BuyMeACoffeeWidget />
       </main>
     </>

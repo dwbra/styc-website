@@ -1,5 +1,5 @@
 import React from 'react';
-import Adsense from '@/app/components/_AdSense_Square';
+import AdsenseSquare from '@/app/components/_AdSense_Square';
 import styles from '../../page.module.scss';
 import { Link } from '@mui/material';
 
@@ -26,7 +26,7 @@ const SpotifyGuidePage = () => {
           required API keys from Spotify!
         </li>
       </ol>
-      <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
+      <AdsenseSquare />
     </div>
   );
 };

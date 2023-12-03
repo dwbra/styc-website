@@ -1,4 +1,4 @@
-import Adsense from '../components/_AdSense_Square';
+import AdsenseSquare from '../components/_AdSense_Square';
 import { Stack, Link } from '@mui/material';
 import styles from '../page.module.scss';
 
@@ -15,7 +15,7 @@ export default function GuidesPage() {
           <Link href="/guides/youtube">Get Youtube API Credentials</Link>
         </div>
       </Stack>
-      <Adsense styles={{ display: 'block', width: '1200px', height: '280px' }} slot="xyz" />
+      <AdsenseSquare />
     </div>
   );
 }
