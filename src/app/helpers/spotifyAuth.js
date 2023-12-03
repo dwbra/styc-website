@@ -17,7 +17,13 @@ const spotifyAuth = async (clientId, clientSecret) => {
       const body = await response.json();
       return body?.access_token;
     } else {
-      throw response;
+      return {
+        status: response.status,
+        statusText: response.statusText,
+        message: 'You have entered an incorrect Spotify ClientId or Client Secret. Please try again.',
+        accessToken: null,
+        error: true,
+      };
     }
   } catch (err) {
     console.log(err);

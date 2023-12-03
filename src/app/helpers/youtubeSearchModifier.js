@@ -5,7 +5,7 @@
  */
 const youtubeSearchModifier = resultsArray => {
   const newArray = resultsArray.map(dataObject => {
-    const id = dataObject.items[0].id;
+    const id = dataObject.value.items[0].id;
     return id;
   });
   return newArray;

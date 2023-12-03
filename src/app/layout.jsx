@@ -24,6 +24,7 @@ export default function RootLayout({ children }) {
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8692686668487136"
           crossorigin="anonymous"
         ></script>
+        <meta name="google-adsense-account" content="ca-pub-8692686668487136"></meta>
       </Head>
       <body className={inter.className}>
         <MyProvider>{children}</MyProvider>

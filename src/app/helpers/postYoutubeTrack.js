@@ -5,26 +5,38 @@
  * @param {String} playlistId The playlistId of what playlist to POST the tracks to.
  */
 const postYoutubeTrack = async (accessToken, singleResourceId, playlistId) => {
-  const request = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      snippet: {
-        playlistId: playlistId,
-        resourceId: {
-          kind: singleResourceId.kind,
-          videoId: singleResourceId.videoId,
-        },
+  try {
+    const request = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
-    }),
-  });
+      body: JSON.stringify({
+        snippet: {
+          playlistId: playlistId,
+          resourceId: {
+            kind: singleResourceId.kind,
+            videoId: singleResourceId.videoId,
+          },
+        },
+      }),
+    });
 
-  const response = await request.json();
-  return response;
+    if (request.ok) {
+      const response = await request.json();
+      return response;
+    } else {
+      return {
+        status: request.status,
+        statusText: request.statusText,
+        message: 'Track was not posted into playlist.',
+      };
+    }
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export default postYoutubeTrack;

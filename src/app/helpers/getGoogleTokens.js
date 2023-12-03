@@ -18,12 +18,17 @@ export default async function getGoogleTokens(googleClientId, googleClientSecret
 
     if (request.ok) {
       const response = await request.json();
+      // This is an object containing access_token etc.
       return response.body;
     } else {
-      throw request;
+      return {
+        status: result.status,
+        statusText: result.statusText,
+        message: 'You have entered an incorrect Google ClientId or Client Secret. Please try again.',
+        error: true,
+      };
     }
   } catch (err) {
-    // console.log(err);
-    return err;
+    console.log(err);
   }
 }

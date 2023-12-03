@@ -18,7 +18,12 @@ const fetchPlaylistTracks = async (bearerToken, playlistId) => {
       const response = await request.json();
       return response;
     } else {
-      throw request;
+      return {
+        status: request.status,
+        statusText: request.statusText,
+        message: 'Fetching all tracks in Spotify has failed. Please try again.',
+        error: true,
+      };
     }
   } catch (err) {
     console.log(err);

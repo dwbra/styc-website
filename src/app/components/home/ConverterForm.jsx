@@ -1,14 +1,15 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import spotifyAuth from '../../helpers/spotifyAuth';
 import getGoogleTokens from '../../helpers/getGoogleTokens';
 import fetchSpotifyTracks from '../../helpers/spotifyFetchTracks';
 import spotifyDataModifier from '../../helpers/spotifyDataModifier';
-import getYoutubeVideoIds from '../../helpers/getYoutubeVideoIds';
+import getYoutubeVideoId from '../../helpers/getYoutubeVideoId';
 import youtubeSearchModifier from '../../helpers/youtubeSearchModifier';
 import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
+import fetchOffsetTracks from '@/app/helpers/spotifyFetchOffsetTracks';
 
 import styles from '../../page.module.scss';
 import { TextField, Button, CircularProgress, Modal, Box, Fade, Backdrop } from '@mui/material';
@@ -36,92 +37,54 @@ const ConverterFormValidation = Yup.object().shape({
   googleClientSecret: Yup.string().required('This is a required field.'),
 });
 
-const ConverterForm = () => {
-  let spotifyStore = [];
-  let spotifyNext = null;
-  // let errorMessage = null;
+const googleFetchVideoIds = async (googleTokens, modifiedSpotifyDataJS) => {
+  async function* getYoutubeIds() {
+    for (const spotifyTrack of modifiedSpotifyDataJS) {
+      yield await getYoutubeVideoId(googleTokens.access_token, spotifyTrack);
+    }
+  }
 
+  const postRequestResultData = getYoutubeIds();
+  let ids = [];
+
+  for (let i = 0; i < modifiedSpotifyDataJS.length; i++) {
+    const idObj = await postRequestResultData.next();
+    ids.push(idObj);
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  return ids;
+};
+
+const googlePostTracks = async (transformedGoogleIds, googleTokens, youtubePlaylistId) => {
+  /**
+   * Create a generator function with a list of yielded async functions. Each yielded function contains a different track to POST into the Youtube playlist.
+   */
+  async function* postTracks() {
+    for (const track of transformedGoogleIds) {
+      yield await postYoutubeTrack(googleTokens.access_token, track, youtubePlaylistId);
+    }
+  }
+
+  // Create the generator object
+  const postRequestResultData = postTracks();
+
+  // Loop over the array of sanitizedIds and call .next() on the generator function to POST the next track.
+  for (let i = 0; i < transformedGoogleIds.length; i++) {
+    postRequestResultData.next();
+    // Wait 4s after each request to ensure we don't hit API errors.
+    await new Promise(r => setTimeout(r, 4000));
+  }
+};
+
+const ConverterForm = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalOpen = () => setIsModalOpen(true);
-  const handleModalClose = () => setIsModalOpen(false);
-
-  const spotifyRecursive = async callback => {
-    const getPlaylist = await callback;
-
-    if (!!spotifyNext) {
-      spotifyStore = [...spotifyStore, ...getPlaylist?.items];
-      spotifyNext = getPlaylist?.tracks?.next;
-      spotifyRecursive();
-    }
-
-    return;
-  };
-
-  const CallStack = async ({
-    spotifyPlaylistId,
-    spotifyClientId,
-    spotifyClientSecret,
-    youtubePlaylistId,
-    googleClientId,
-    googleClientSecret,
-  }) => {
-    const googleFetchTokens = await getGoogleTokens(googleClientId, googleClientSecret);
-
-    if (googleFetchTokens.ok === false) {
-      setErrorMessage({
-        status: googleFetchTokens.status,
-        statusText: googleFetchTokens.statusText,
-        message: 'You have entered an incorrect Google ClientId or Client Secret. Please try again.',
-      });
-      return;
-    }
-
-    const spotifyToken = await spotifyAuth(spotifyClientId, spotifyClientSecret);
-
-    const getSpotifyPlaylistTracks = await fetchSpotifyTracks(spotifyToken, spotifyPlaylistId);
-    spotifyNext = getSpotifyPlaylistTracks?.tracks?.next;
-    spotifyStore = [...getSpotifyPlaylistTracks?.tracks?.items];
-
-    if (!!spotifyNext) {
-      await spotifyRecursive(fetchOffsetTracks(spotifyToken, spotifyNext));
-    }
-
-    const modifiedSpotifyDataJS = spotifyDataModifier(spotifyStore);
-
-    if (!modifiedSpotifyDataJS.length < 1) {
-      modifiedSpotifyDataJS.length = 1;
-    }
-
-    const youtubeVideoIds = await getYoutubeVideoIds(googleFetchTokens.access_token, modifiedSpotifyDataJS);
-
-    if (youtubeVideoIds[0].error) {
-      console.log(youtubeVideoIds[0].error);
-      alert('Failed');
-      return;
-    }
-
-    const sanitizedIds = youtubeSearchModifier(youtubeVideoIds);
-
-    /**
-     * Create a generator function with a list of yielded async functions. Each yielded function contains a different track to POST into the Youtube playlist.
-     */
-    async function* postTracks() {
-      for (const track of sanitizedIds) {
-        yield await postYoutubeTrack(googleFetchTokens.access_token, track, youtubePlaylistId);
-      }
-    }
-
-    // Create the generator object
-    const postRequestResultData = postTracks();
-
-    // Loop over the array of sanitizedIds and call .next() on the generator function to POST the next track.
-    for (let i = 0; i < sanitizedIds.length; i++) {
-      postRequestResultData.next();
-      // Wait 4s after each request to ensure we don't hit API errors.
-      await new Promise(r => setTimeout(r, 4000));
-    }
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setErrorMessage(null);
   };
 
   return (
@@ -155,19 +118,77 @@ const ConverterForm = () => {
           handleModalOpen();
           setSubmitting(false);
 
-          await CallStack({
-            spotifyPlaylistId,
-            spotifyClientId,
-            spotifyClientSecret,
-            youtubePlaylistId,
-            googleClientId,
-            googleClientSecret,
-          });
+          let spotifyNext = null;
+          let spotifyStore = [];
 
-          if (errorMessage === null) {
-            resetForm();
-            handleModalClose();
+          // //rewrite using a reducer
+          // const spotifyRecursive = async callback => {
+          //   const getPlaylist = await callback();
+
+          //   if (!!spotifyNext) {
+          //     spotifyStore = [...spotifyStore, ...getPlaylist?.items];
+          //     spotifyNext = getPlaylist?.tracks?.next;
+          //     spotifyRecursive(callback);
+          //   }
+
+          //   return;
+          // };
+
+          const googleT = await getGoogleTokens(googleClientId, googleClientSecret);
+
+          if (googleT?.error) {
+            console.warn('Google Token API Error');
+            setErrorMessage(googleT);
+            return;
           }
+
+          const spotifyT = await spotifyAuth(spotifyClientId, spotifyClientSecret);
+
+          if (spotifyT?.error) {
+            console.warn('Spotify Token API Error');
+            setErrorMessage(spotifyT);
+            return;
+          }
+
+          const spotifyTrax = await fetchSpotifyTracks(spotifyT, spotifyPlaylistId);
+
+          console.log(spotifyTrax);
+
+          if (spotifyTrax?.error) {
+            console.warn('Spotify Fetch Error');
+            setErrorMessage(spotifyTrax);
+            return;
+          }
+
+          spotifyNext = spotifyTrax?.tracks?.next;
+          spotifyStore = spotifyTrax?.tracks?.items;
+
+          if (!!spotifyNext) {
+            await spotifyRecursive(fetchOffsetTracks(spotifyT, spotifyNext));
+          }
+
+          const transformedSpotifyStore = spotifyDataModifier(spotifyStore);
+
+          console.log({ transformedSpotifyStore });
+
+          if (transformedSpotifyStore.length > 1) {
+            transformedSpotifyStore.length = 1;
+          }
+
+          const googleVideoIds = await googleFetchVideoIds(googleT, transformedSpotifyStore);
+
+          console.log({ googleVideoIds });
+
+          const googleTransformed = youtubeSearchModifier(googleVideoIds);
+
+          console.log({ googleTransformed });
+
+          // await googlePostTracks(transformedGoogleIds, googleTokens, youtubePlaylistId);
+
+          // if (errorMessage === null) {
+          //   resetForm();
+          //   handleModalClose();
+          // }
         }}
       >
         {({ isSubmitting, isValid }) => (
@@ -299,7 +320,7 @@ const ConverterForm = () => {
         <Fade in={isModalOpen}>
           <Box sx={modalStyle}>
             <div style={{ position: 'relative' }}>
-              {errorMessage ? (
+              {!!errorMessage ? (
                 <>
                   <p>Error Status: {errorMessage.status}</p>
                   <p>{errorMessage.message}</p>
@@ -310,7 +331,7 @@ const ConverterForm = () => {
                   <CircularProgress />
                 </>
               )}
-              {errorMessage && (
+              {!!errorMessage && (
                 <button onClick={handleModalClose} type="button" className={styles.modalCloseButton}>
                   <ClearIcon />
                 </button>
