@@ -1,4 +1,4 @@
-import Adsense from '../_AdSense';
+import Adsense from '../_AdSense_Square';
 export default function IntroContent() {
   return (
     <>

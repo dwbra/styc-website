@@ -1,5 +1,5 @@
 import React from 'react';
-import Adsense from '@/app/components/_AdSense';
+import Adsense from '@/app/components/_AdSense_Square';
 import styles from '../../page.module.scss';
 import { Link } from '@mui/material';
 import Image from 'next/image';

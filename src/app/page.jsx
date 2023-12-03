@@ -1,4 +1,4 @@
-import Adsense from '@/app/components/_AdSense';
+import Adsense from '@/app/components/_AdSense_Square';
 import IntroContent from '@/app/components/home/IntroContent';
 import GuidesContent from '@/app/components/home/GuidesContent';
 import BuyMeACoffeeButton from '@/app/components/_BuyMeCoffeeButton';

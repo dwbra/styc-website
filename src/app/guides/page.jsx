@@ -1,4 +1,4 @@
-import Adsense from '../components/_AdSense';
+import Adsense from '../components/_AdSense_Square';
 import { Stack, Link } from '@mui/material';
 import styles from '../page.module.scss';
 
