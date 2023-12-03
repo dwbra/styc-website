@@ -20,7 +20,7 @@ export default function AdsenseSquare() {
   return (
     <ins
       className="adsbygoogle"
-      styles={{ display: 'block' }}
+      style={{ display: 'block' }}
       data-ad-client="ca-pub-8692686668487136"
       data-ad-slot="3129108092"
       data-ad-format="auto"
