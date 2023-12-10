@@ -1,6 +1,5 @@
 import Adsense from '../components/global/_AdSense';
 import { Stack, Link } from '@mui/material';
-import { Media } from '../components/tools/MediaQuery';
 import styles from '../page.module.scss';
 
 export default function GuidesPage() {
@@ -16,12 +15,6 @@ export default function GuidesPage() {
           <Link href="/guides/youtube">Get Youtube API Credentials</Link>
         </div>
       </Stack>
-      <Media at="xs">
-        <Adsense shape="square" />
-      </Media>
-      <Media greaterThan="xs">
-        <Adsense shape="horizontal" />
-      </Media>
     </div>
   );
 }

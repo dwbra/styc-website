@@ -1,11 +1,8 @@
-import React from 'react';
 import Adsense from '@/app/components/global/_AdSense';
-import { Media } from '../../components/tools/MediaQuery';
 import styles from '../../page.module.scss';
 import { Link } from '@mui/material';
 
 const SpotifyGuidePage = () => {
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
   return (
     <div className={styles.spotifyGuidePage}>
       <h1>Spotify API Guide</h1>
@@ -28,12 +25,6 @@ const SpotifyGuidePage = () => {
           required API keys from Spotify!
         </li>
       </ol>
-      <Media at="xs">
-        <Adsense shape="square" />
-      </Media>
-      <Media greaterThan="xs">
-        <Adsense shape="horizontal" />
-      </Media>
     </div>
   );
 };

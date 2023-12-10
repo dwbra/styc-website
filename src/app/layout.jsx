@@ -4,7 +4,6 @@ import './globals.css';
 import Footer from '@/app/components/global/_Footer';
 import ResponsiveAppBar from './components/global/ResponsiveAppBar';
 import { Roboto } from 'next/font/google';
-import { MediaContextProvider, mediaStyles } from './components/tools/MediaQuery';
 
 const roboto = Roboto({ subsets: ['latin'], weight: '400' });
 
@@ -30,14 +29,11 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Kalnia:wght@100;200;300;400;500;600;700&family=Nanum+Brush+Script&display=swap"
           rel="stylesheet"
         />
-        <style type="text/css" dangerouslySetInnerHTML={{ __html: mediaStyles }} />
       </Head>
       <body className={roboto?.className}>
-        <MediaContextProvider>
-          <ResponsiveAppBar />
-          {children}
-          <Footer />
-        </MediaContextProvider>
+        <ResponsiveAppBar />
+        {children}
+        <Footer />
       </body>
     </html>
   );
