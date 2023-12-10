@@ -35,7 +35,7 @@ function ResponsiveAppBar() {
             variant="h6"
             noWrap
             component="a"
-            href="#app-bar-with-responsive-menu"
+            href="/"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -48,7 +48,6 @@ function ResponsiveAppBar() {
           >
             styc
           </Typography>
-
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
@@ -104,10 +103,10 @@ function ResponsiveAppBar() {
             styc
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {pages.map(page => (
-              <Button key={page} onClick={handleCloseNavMenu} sx={{ my: 2, color: 'white', display: 'block' }}>
-                {page}
-              </Button>
+            {pages.map((page, index) => (
+              <MenuItem key={page} onClick={handleCloseNavMenu}>
+                <Link href={links[index]}>{page}</Link>
+              </MenuItem>
             ))}
           </Box>
         </Toolbar>
