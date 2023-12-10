@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Stack, Link } from '@mui/material';
-import styles from '../page.module.scss';
+import styles from '../../page.module.scss';
 export default function Footer() {
   const [isClient, setIsClient] = useState(false);
 

@@ -11,6 +11,8 @@ import youtubeSearchModifier from '../../helpers/youtubeSearchModifier';
 import postYoutubeTrack from '@/app/helpers/postYoutubeTrack';
 import fetchOffsetTracks from '@/app/helpers/spotifyFetchOffsetTracks';
 
+import InfoToolTip from '../tools/InfoToolTip';
+
 import styles from '../../page.module.scss';
 import { TextField, Button, CircularProgress, Modal, Box, Fade, Backdrop } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -89,7 +91,10 @@ const ConverterForm = () => {
 
   return (
     <div>
-      <h3>Convert your Spotify Playlist Below</h3>
+      <h3>
+        Convert your Spotify Playlist Below{' '}
+        <InfoToolTip text="Due to API restrictions, you can only convert playlists containing 40 tracks or less." />
+      </h3>
       <p>
         Simply enter the required information below and hit submit! The playlist will get built and we will notify you
         once it has been completed!
@@ -121,18 +126,20 @@ const ConverterForm = () => {
           let spotifyNext = null;
           let spotifyStore = [];
 
-          // //rewrite using a reducer
-          // const spotifyRecursive = async callback => {
-          //   const getPlaylist = await callback();
+          const spotifyRecursiveReducer = async (callback, store = []) => {
+            const getPlaylist = await callback();
 
-          //   if (!!spotifyNext) {
-          //     spotifyStore = [...spotifyStore, ...getPlaylist?.items];
-          //     spotifyNext = getPlaylist?.tracks?.next;
-          //     spotifyRecursive(callback);
-          //   }
+            if (!!spotifyNext) {
+              // Spread existing store
+              const updatedStore = [...store, ...getPlaylist?.items];
+              // Need to update the next variable so the following call hits the correct endpoint.
+              spotifyNext = getPlaylist.next;
+              // Call the reducer function again with the updated endpoint & store.
+              return spotifyRecursiveReducer(callback, updatedStore);
+            }
 
-          //   return;
-          // };
+            return store;
+          };
 
           const googleT = await getGoogleTokens(googleClientId, googleClientSecret);
 
@@ -164,24 +171,24 @@ const ConverterForm = () => {
           spotifyStore = spotifyTrax?.tracks?.items;
 
           if (!!spotifyNext) {
-            await spotifyRecursive(fetchOffsetTracks(spotifyT, spotifyNext));
+            spotifyStore = await spotifyRecursiveReducer(() => fetchOffsetTracks(spotifyT, spotifyNext), spotifyStore);
           }
 
           const transformedSpotifyStore = spotifyDataModifier(spotifyStore);
 
           console.log({ transformedSpotifyStore });
 
-          if (transformedSpotifyStore.length > 1) {
-            transformedSpotifyStore.length = 1;
-          }
+          // if (transformedSpotifyStore.length > 1) {
+          //   transformedSpotifyStore.length = 1;
+          // }
 
-          const googleVideoIds = await googleFetchVideoIds(googleT, transformedSpotifyStore);
+          // const googleVideoIds = await googleFetchVideoIds(googleT, transformedSpotifyStore);
 
-          console.log({ googleVideoIds });
+          // console.log({ googleVideoIds });
 
-          const googleTransformed = youtubeSearchModifier(googleVideoIds);
+          // const googleTransformed = youtubeSearchModifier(googleVideoIds);
 
-          console.log({ googleTransformed });
+          // console.log({ googleTransformed });
 
           // await googlePostTracks(transformedGoogleIds, googleTokens, youtubePlaylistId);
 
@@ -299,7 +306,12 @@ const ConverterForm = () => {
                 );
               }}
             </Field>
-            <Button type="submit" variant="contained" disabled={isSubmitting || !isValid}>
+            <Button
+              sx={{ backgroundColor: '#f38607' }}
+              type="submit"
+              variant="contained"
+              disabled={isSubmitting || !isValid}
+            >
               Submit
             </Button>
           </Form>

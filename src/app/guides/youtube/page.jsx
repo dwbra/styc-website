@@ -1,5 +1,6 @@
 import React from 'react';
-import AdsenseSquare from '@/app/components/_AdSense_Square';
+import Adsense from '@/app/components/global/_AdSense';
+import { Media } from '../../components/tools/MediaQuery';
 import styles from '../../page.module.scss';
 import { Link } from '@mui/material';
 import Image from 'next/image';
@@ -68,7 +69,12 @@ const YoutubeGuidePage = () => {
           your client secret there also.
         </li>
       </ol>
-      <AdsenseSquare />
+      <Media at="xs">
+        <Adsense shape="square" />
+      </Media>
+      <Media greaterThan="xs">
+        <Adsense shape="horizontal" />
+      </Media>
     </div>
   );
 };

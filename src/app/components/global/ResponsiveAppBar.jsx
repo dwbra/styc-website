@@ -13,8 +13,8 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import Link from 'next/link';
 
-const links = ['/', '/guides', '/help'];
-const pages = ['Home', 'Guides', 'Help'];
+const links = ['/', '/guides'];
+const pages = ['Home', 'Guides'];
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -28,7 +28,7 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar sx={{ backgroundColor: '#f38607' }} position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Typography
