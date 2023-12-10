@@ -17,8 +17,8 @@ export default function Footer() {
             <p>Copyright© Daniel Workman</p>
           </div>
           <div className={styles.footerSocials}>
-            <Link href="">linkedin</Link>
-            <Link href="">Github</Link>
+            <Link href="https://www.linkedin.com/in/danielworkman1/">linkedin</Link>
+            <Link href="https://github.com/dwbra">Github</Link>
           </div>
         </Stack>
       </div>
