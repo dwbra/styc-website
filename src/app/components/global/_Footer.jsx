@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { Stack, Link } from '@mui/material';
 import styles from '../../page.module.scss';
 
-import useMediaQuery from '../../hooks/useMediaQuery';
+// import useMediaQuery from '../../hooks/useMediaQuery';
 
 export default function Footer() {
-  const mediaQ = useMediaQuery();
-  console.log(mediaQ);
+  // const mediaQ = useMediaQuery();
+  // console.log(mediaQ);
 
   const [isClient, setIsClient] = useState(false);
 
