@@ -9,6 +9,13 @@ import styles from './page.module.scss';
 export default function Home() {
   return (
     <>
+      {/* <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8692686668487136"
+          crossorigin="anonymous"
+        ></script>
+      </head> */}
       <main className={styles.main}>
         <IntroContent />
         <GuidesContent />
